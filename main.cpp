@@ -3,6 +3,7 @@
 #include <map>
 #include <sstream>
 #include <fstream>
+#include <string>
 using namespace std;
 
 struct Vertex {
@@ -36,6 +37,10 @@ struct Vertex {
 class Graph {
     map<string, Vertex> graph;
 public:
+    void GraphSize(){
+        cout << graph.size();
+    }
+
     void read(ifstream& file) {
         string singleLine;
         string primaryTitle;
@@ -57,6 +62,17 @@ public:
         int size = 9916880;
 
         if (file.is_open()) {
+            getline(file, singleLine);
+            istringstream stream(singleLine);
+            getline(stream, ignore, '\t');
+            getline(stream, titleType, '\t');
+            getline(stream, primaryTitle, '\t');
+            getline(stream, ignore, '\t');
+            getline(stream, isAdultString, '\t');
+            getline(stream, startYearString, '\t');
+            getline(stream, endYearString, '\t');
+            getline(stream, runtimeMinutesString, '\t');
+            getline(stream, genre, '\n');
             for (int i = 0; i < size; i++) {
                 getline(file, singleLine);
                 istringstream stream(singleLine);
@@ -69,7 +85,6 @@ public:
                 getline(stream, startYearString, '\t');
                 startYear = stoi(startYearString);
                 getline(stream, endYearString, '\t');
-                endYear = stoi(endYearString);
                 getline(stream, runtimeMinutesString, '\t');
                 runtimeMinutes = stoi(runtimeMinutesString);
                 getline(stream, genre, '\n');
@@ -88,12 +103,10 @@ public:
                         genre3 = genre;
                     }
                 }
+                graph.emplace(primaryTitle, Vertex(titleType, isAdult, startYear, endYear, runtimeMinutes));
             }
         }
-        Vertex newVertex(titleType, isAdult, startYear, endYear, runtimeMinutes);
-        graph[primaryTitle] = newVertex;
-        file.close();
-
+        myfile.close();
     }
 };
 
@@ -102,5 +115,9 @@ int main() {
     cout << "hello" << endl;
     ifstream myfile("title.basics.tsv");
     g.read(myfile);
+    if(!myfile.is_open()){
+        cout << "naw";
+    }
+    g.GraphSize();
     return 0;
 }
