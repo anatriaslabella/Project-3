@@ -9,23 +9,23 @@ using namespace std;
 struct Vertex {
     string titleType;
     bool isAdult;
-    int startYear;
-    int endYear;
-    int runtimeMinutes;
-    string genres[3];
+    string startYear;
+    string endYear;
+    string runtimeMinutes;
+    string genres;
     vector<string> directors;
     float averageRating;
 
     Vertex() {
         titleType = "";
         isAdult = false;
-        startYear = 0000;
-        endYear = 0000;
-        runtimeMinutes = 0;
+        startYear = "0000";
+        endYear = "0000";
+        runtimeMinutes = "0";
         averageRating = 0.0;
     }
 
-    Vertex(string& titleType, bool isAdult, int startYear, int endYear, int runtimeMinutes) {
+    Vertex(string& titleType, bool isAdult, string startYear, string endYear, string runtimeMinutes, string genres) {
         this->titleType = titleType;
         this->isAdult = isAdult;
         this->startYear = startYear;
@@ -47,66 +47,75 @@ public:
         string ignore;
         string titleType;
         bool isAdult;
-        string isAdultString;
-        int startYear;
-        string startYearString;
-        string endYearString;
-        int endYear;
-        string runtimeMinutesString;
+//        string isAdultString;
+//        string startYearString;
+//        string endYearString;
+//        string runtimeMinutesString;
         int runtimeMinutes;
-        string genres[3];
+//        string genres[3];
         string genre;
-        string genre1;
-        string genre2;
-        string genre3;
+//        string genre1;
+//        string genre2;
+//        string genre3;
         int size = 9916880;
 
         if (file.is_open()) {
             getline(file, singleLine);
             istringstream stream(singleLine);
-            getline(stream, ignore, '\t');
-            getline(stream, titleType, '\t');
-            getline(stream, primaryTitle, '\t');
-            getline(stream, ignore, '\t');
-            getline(stream, isAdultString, '\t');
-            getline(stream, startYearString, '\t');
-            getline(stream, endYearString, '\t');
-            getline(stream, runtimeMinutesString, '\t');
-            getline(stream, genre, '\n');
+            getline(stream, ignore);
             for (int i = 0; i < size; i++) {
-                getline(file, singleLine);
-                istringstream stream(singleLine);
-                getline(stream, ignore, '\t');
-                getline(stream, titleType, '\t');
-                getline(stream, primaryTitle, '\t');
-                getline(stream, ignore, '\t');
-                getline(stream, isAdultString, '\t');
-                isAdult = stoi(isAdultString);
-                getline(stream, startYearString, '\t');
-                startYear = stoi(startYearString);
-                getline(stream, endYearString, '\t');
-                getline(stream, runtimeMinutesString, '\t');
-                runtimeMinutes = stoi(runtimeMinutesString);
-                getline(stream, genre, '\n');
-                if (!genre.find(',')) {
-                    genre1 = genre;
+//                getline(file, singleLine);
+//                istringstream stream(singleLine);
+//                getline(stream, ignore, '\t');
+//                getline(stream, titleType, '\t');
+//                cout << titleType;
+//                getline(stream, primaryTitle, '\t');
+//                cout << primaryTitle;
+//                getline(stream, ignore, '\t');
+//                getline(stream, isAdultString, '\t');
+//                isAdult = stoi(isAdultString);
+//                getline(stream, startYearString, '\t');
+//                startYear = stoi(startYearString);
+//                getline(stream, endYearString, '\t');
+//                getline(stream, runtimeMinutesString, '\t');
+//                runtimeMinutes = stoi(runtimeMinutesString);
+//                getline(stream, genre, '\n');
+//                cout << genre;
+//                if (!genre.find(',')) {
+//                    genre1 = genre;
+//                }
+//                else {
+//                    genre1 = genre.substr(0, genre.find(','));
+//                    genre.erase(genre1.begin(), genre1.end());
+//                    if (!genre.find(',')) {
+//                        genre2 = genre;
+//                    }
+//                    else {
+//                        genre2 = genre.substr(0, genre.find(','));
+//                        genre.erase(genre2.begin(), genre2.end());
+//                        genre3 = genre;
+//                    }
+//                }
+//                graph.emplace(primaryTitle, Vertex(titleType, isAdult, startYear, endYear, runtimeMinutes));
+                string line;
+                getline(file, line);
+                istringstream stream(line);
+                vector<string> movie_qualities;
+                string quality;
+                while(getline(stream, quality, '\t')){
+                    movie_qualities.push_back(quality);
                 }
-                else {
-                    genre1 = genre.substr(0, genre.find(','));
-                    genre.erase(genre1.begin(), genre1.end());
-                    if (!genre.find(',')) {
-                        genre2 = genre;
-                    }
-                    else {
-                        genre2 = genre.substr(0, genre.find(','));
-                        genre.erase(genre2.begin(), genre2.end());
-                        genre3 = genre;
-                    }
-                }
-                graph.emplace(primaryTitle, Vertex(titleType, isAdult, startYear, endYear, runtimeMinutes));
+                string primaryTitle = movie_qualities[2];
+                string titleType = movie_qualities[1];
+                bool isAdult = stoi(movie_qualities[4]);
+                string startYear = movie_qualities[5];
+                string endYear = movie_qualities[6];
+                string runtimeMinutes = movie_qualities[7];
+                string genre = movie_qualities[8];
+                graph.emplace(primaryTitle, Vertex(titleType, isAdult, startYear, endYear, runtimeMinutes, genre));
             }
+            file.close();
         }
-        myfile.close();
     }
 };
 
@@ -115,9 +124,6 @@ int main() {
     cout << "hello" << endl;
     ifstream myfile("title.basics.tsv");
     g.read(myfile);
-    if(!myfile.is_open()){
-        cout << "naw";
-    }
     g.GraphSize();
     return 0;
 }
