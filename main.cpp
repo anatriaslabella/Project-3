@@ -57,13 +57,14 @@ public:
 //        string genre1;
 //        string genre2;
 //        string genre3;
-        int size = 9916880;
+        int size = 1667546;
 
         if (file.is_open()) {
             getline(file, singleLine);
             istringstream stream(singleLine);
             getline(stream, ignore);
-            for (int i = 0; i < size; i++) {
+            string line;
+            while(getline(file, line)){
 //                getline(file, singleLine);
 //                istringstream stream(singleLine);
 //                getline(stream, ignore, '\t');
@@ -97,8 +98,6 @@ public:
 //                    }
 //                }
 //                graph.emplace(primaryTitle, Vertex(titleType, isAdult, startYear, endYear, runtimeMinutes));
-                string line;
-                getline(file, line);
                 istringstream stream(line);
                 vector<string> movie_qualities;
                 string quality;
@@ -122,7 +121,7 @@ public:
 int main() {
     Graph g;
     cout << "hello" << endl;
-    ifstream myfile("title.basics.tsv");
+    ifstream myfile("filtered_titles.tsv");
     g.read(myfile);
     g.GraphSize();
     return 0;
