@@ -34,7 +34,7 @@ struct Vertex {
         istringstream stream(genres);
         string temp_genre;
         int i = 0;
-        while(getline(stream,temp_genre,',') || i < 3){
+        while(getline(stream,temp_genre,',') && i < 3){
             this->genre_list[i] = temp_genre;
             i++;
         }
@@ -118,7 +118,9 @@ public:
                 string endYear = movie_qualities[6];
                 string runtimeMinutes = movie_qualities[7];
                 string genre = movie_qualities[8];
-                graph.emplace(primaryTitle, Vertex(titleType, isAdult, startYear, endYear, runtimeMinutes, genre));
+                if (titleType != "tvEpisode") {
+                    graph.emplace(primaryTitle, Vertex(titleType, isAdult, startYear, endYear, runtimeMinutes, genre));
+                }
             }
             file.close();
         }
