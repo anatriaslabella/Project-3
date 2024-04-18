@@ -12,7 +12,7 @@ struct Vertex {
     string startYear;
     string endYear;
     string runtimeMinutes;
-    string genres;
+    string genre_list[3];
     vector<string> directors;
     float averageRating;
 
@@ -31,6 +31,13 @@ struct Vertex {
         this->startYear = startYear;
         this->endYear = endYear;
         this->runtimeMinutes = runtimeMinutes;
+        istringstream stream(genres);
+        string temp_genre;
+        int i = 0;
+        while(getline(stream,temp_genre,',') || i < 3){
+            this->genre_list[i] = temp_genre;
+            i++;
+        }
     }
 };
 
