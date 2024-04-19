@@ -30,7 +30,7 @@ struct Vertex {
         averageRating = 0.0;
     }
 
-    Vertex(string name, string& titleType, bool isAdult, string startYear, string endYear, string runtimeMinutes, string genres) {
+    Vertex(string name, string& titleType, bool isAdult, string startYear, string endYear, string runtimeMinutes, string& genres) {
         this->name = name;
         this->titleType = titleType;
         this->isAdult = isAdult;
@@ -82,7 +82,7 @@ public:
             getline(stream, ignore);
             string line;
 //            while(getline(file, line))
-            for(int i = 0; i < 20; i++){
+            for(int i = 0; i < 50; i++){
                 getline(file,line);
 //                getline(file, singleLine);
 //                istringstream stream(singleLine);
@@ -149,12 +149,20 @@ public:
             for(int i = 0; i < 3; i++){
                 iteratedNameGenres[i] = iter->second.genre_list[i];
             }
-            vector<string> unionGenres(6);
-            vector<string> intersectionGenres(6);
-            set_union(inputedNameGenres, inputedNameGenres + n, iteratedNameGenres, iteratedNameGenres + n, unionGenres.begin());
-            set_intersection(inputedNameGenres, inputedNameGenres + n, iteratedNameGenres, iteratedNameGenres + n, intersectionGenres.begin());
-            float similarity = intersectionGenres.size() / unionGenres.size();
-            similarTitles[similarity].push_back(iter->second);
+            set<string> unionGenres;
+            set<string> intersectionGenres;
+            set_union(inputedNameGenres, inputedNameGenres + n, iteratedNameGenres, iteratedNameGenres + n, inserter(unionGenres, unionGenres.begin()));
+            if (unionGenres.find("") != unionGenres.end()) {
+                unionGenres.erase("");
+            }
+            set_intersection(inputedNameGenres, inputedNameGenres + n, iteratedNameGenres, iteratedNameGenres + n, inserter(intersectionGenres, intersectionGenres.begin()));
+            if (intersectionGenres.find("") != intersectionGenres.end()) {
+                intersectionGenres.erase("");
+            }
+            float similarity = (float)intersectionGenres.size() / (float)unionGenres.size();
+            if (iter->first != name) {
+                similarTitles[similarity].push_back(iter->second);
+            }
         }
         return similarTitles;
     }
@@ -162,7 +170,7 @@ public:
     void PrintTop20(string& name){
         map<float, vector<Vertex>> titles = jaccard(name);
         int counter = 0;
-        for(auto iter = titles.end(); iter != titles.begin(); iter--){
+        for(auto iter = titles.rbegin(); iter != titles.rend(); iter++){
             for(int i = 0; i < iter->second.size(); i++) {
                 if(counter == 20){
                     return;
