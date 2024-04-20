@@ -7,6 +7,7 @@
 #include <set>
 #include <algorithm>
 #include <utility>
+#include <math.h>
 using namespace std;
 
 struct Vertex {
@@ -167,12 +168,73 @@ public:
         return similarTitles;
     }
 
-    void PrintTop20(string& name){
+    map<float, vector<Vertex>> cosine(string& name){
+        Vertex data = graph[name];
+        vector<string> inputedNameGenres;
+        map<float, vector<Vertex>> similarTitles;
+        for (int i = 0; i < 3; i++) {
+            inputedNameGenres.push_back(data.genre_list[i]);
+        }
+        for(auto iter = graph.begin(); iter != graph.end(); iter++){ // iterate through graph, compare each values' genre list to the given movie's genre list
+            set<string> unionGenres;
+            vector<string> iteratedNameGenres;
+            for(int i = 0; i < 3; i++){
+                iteratedNameGenres.push_back(iter->second.genre_list[i]);
+                unionGenres.insert(inputedNameGenres[i]);
+                unionGenres.insert(iter->second.genre_list[i]);
+            }
+            if (unionGenres.find("") != unionGenres.end()) {
+                unionGenres.erase("");
+            }
+            vector<int> temp = {0, 0};
+            map<string, vector<int>> similarityTable;
+            for (auto iter2 = unionGenres.begin(); iter2 != unionGenres.end(); iter2++) {
+                similarityTable[*iter2] = temp;
+                if (find(inputedNameGenres.begin(), inputedNameGenres.end(), *iter2) != inputedNameGenres.end()) {
+                    similarityTable[*iter2][0] = 1;
+                }
+                if (find(iteratedNameGenres.begin(), iteratedNameGenres.end(), *iter2) != iteratedNameGenres.end()) {
+                    similarityTable[*iter2][1] = 1;
+                }
+            }
+            int dot_product = 0;
+            float a_distance = 0;
+            float b_distance = 0;
+            for (auto iter3 = similarityTable.begin(); iter3 != similarityTable.end(); iter3++) {
+                dot_product += (iter3->second[0] * iter3->second[1]);
+                a_distance += (float)pow(iter3->second[0], 2);
+                b_distance += (float)pow(iter3->second[1], 2);
+            }
+            a_distance = sqrt(a_distance);
+            b_distance = sqrt(b_distance);
+            float similarity = (float)dot_product / (a_distance * b_distance);
+            if (iter->first != name) {
+                similarTitles[similarity].push_back(iter->second);
+            }
+        }
+        return similarTitles;
+    }
+
+    void PrintTop20Jaccard(string& name){
         map<float, vector<Vertex>> titles = jaccard(name);
         int counter = 0;
         for(auto iter = titles.rbegin(); iter != titles.rend(); iter++){
             for(int i = 0; i < iter->second.size(); i++) {
-                if(counter == 20){
+                if(counter == 50){
+                    return;
+                }
+                cout << iter->second[i].name << " " << iter->first << endl;
+                counter++;
+            }
+        }
+    }
+
+    void PrintTop20Cosine(string& name){
+        map<float, vector<Vertex>> titles = cosine(name);
+        int counter = 0;
+        for(auto iter = titles.rbegin(); iter != titles.rend(); iter++){
+            for(int i = 0; i < iter->second.size(); i++) {
+                if(counter == 50){
                     return;
                 }
                 cout << iter->second[i].name << " " << iter->first << endl;
@@ -185,7 +247,6 @@ public:
 int main() {
     Graph g;
     string name;
-    cout << "hello" << endl;
     ifstream myfile("filtered_titles.tsv");
     g.read(myfile);
     cout << "here" << endl;
@@ -194,7 +255,11 @@ int main() {
     cout << "Enter movie/show name: " << endl;
     cin >> name;
     g.jaccard(name);
+    g.PrintTop20Jaccard(name);
+    cout << endl;
     cout << "here" << endl;
-    g.PrintTop20(name);
+    cout << endl;
+    g.cosine(name);
+    g.PrintTop20Cosine(name);
     return 0;
 }
