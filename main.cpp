@@ -82,9 +82,7 @@ public:
             istringstream stream(singleLine);
             getline(stream, ignore);
             string line;
-//            while(getline(file, line))
-            for(int i = 0; i < 50; i++){
-                getline(file,line);
+            while(getline(file, line)) {
 //                getline(file, singleLine);
 //                istringstream stream(singleLine);
 //                getline(stream, ignore, '\t');
@@ -253,7 +251,7 @@ int main() {
     g.GraphSize();
     cout << endl;
     cout << "Enter movie/show name: " << endl;
-    cin >> name;
+    getline(cin, name);
     g.jaccard(name);
     g.PrintTop20Jaccard(name);
     cout << endl;
