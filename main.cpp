@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <vector>
 #include <map>
@@ -19,7 +18,6 @@ struct Vertex {
     int endYear;
     int runtimeMinutes;
     string genre_list[3];
-    vector<string> directors;
     float averageRating;
 
     Vertex() {
@@ -32,7 +30,7 @@ struct Vertex {
         averageRating = 0.0;
     }
 
-    Vertex(string name, string& titleType, bool isAdult, string startYear, string endYear, string runtimeMinutes, string& genres) {
+    Vertex(string name, string& titleType, bool isAdult, string startYear, string endYear, string runtimeMinutes, string& genres, string rating) {
         this->name = name;
         this->titleType = titleType;
         this->isAdult = isAdult;
@@ -54,6 +52,13 @@ struct Vertex {
         else{
             this->runtimeMinutes = stoi(runtimeMinutes);
         }
+        if(rating == "\\N"){
+            this->averageRating = 0;
+        }
+        else{
+            this->averageRating = stof(rating);
+        }
+
         istringstream stream(genres);
         string temp_genre;
         int i = 0;
@@ -99,39 +104,6 @@ public:
             getline(stream, ignore);
             string line;
             while(getline(file, line)) {
-//                getline(file, singleLine);
-//                istringstream stream(singleLine);
-//                getline(stream, ignore, '\t');
-//                getline(stream, titleType, '\t');
-//                cout << titleType;
-//                getline(stream, primaryTitle, '\t');
-//                cout << primaryTitle;
-//                getline(stream, ignore, '\t');
-//                getline(stream, isAdultString, '\t');
-//                isAdult = stoi(isAdultString);
-//                getline(stream, startYearString, '\t');
-//                startYear = stoi(startYearString);
-//                getline(stream, endYearString, '\t');
-//                getline(stream, runtimeMinutesString, '\t');
-//                runtimeMinutes = stoi(runtimeMinutesString);
-//                getline(stream, genre, '\n');
-//                cout << genre;
-//                if (!genre.find(',')) {
-//                    genre1 = genre;
-//                }
-//                else {
-//                    genre1 = genre.substr(0, genre.find(','));
-//                    genre.erase(genre1.begin(), genre1.end());
-//                    if (!genre.find(',')) {
-//                        genre2 = genre;
-//                    }
-//                    else {
-//                        genre2 = genre.substr(0, genre.find(','));
-//                        genre.erase(genre2.begin(), genre2.end());
-//                        genre3 = genre;
-//                    }
-//                }
-//                graph.emplace(primaryTitle, Vertex(titleType, isAdult, startYear, endYear, runtimeMinutes));
                 istringstream stream(line);
                 vector<string> movie_qualities;
                 string quality;
@@ -145,33 +117,40 @@ public:
                 string endYear = movie_qualities[6];
                 string runtimeMinutes = movie_qualities[7];
                 string genre = movie_qualities[8];
-                graph.emplace(primaryTitle, Vertex(primaryTitle, titleType, isAdult, startYear, endYear, runtimeMinutes, genre));
+                string rating = movie_qualities[9];
+                graph.emplace(primaryTitle, Vertex(primaryTitle, titleType, isAdult, startYear, endYear, runtimeMinutes, genre, rating));
             }
             file.close();
         }
     }
 
-    map<float, vector<Vertex>> jaccard(string& name, bool adult, int initialYear, string movieOrShow, int runtimeMinutes){
+    map<float, vector<Vertex>> jaccard(string& name, bool adult, int initialYear, string& movieOrShow, int runtimeMinutes){
         Vertex data = graph[name];
-        string inputedNameGenres[3];
+        string inputedNameProperties[6];
         map<float, vector<Vertex>> similarTitles;
         for (int i = 0; i < 3; i++) {
-            inputedNameGenres[i] = data.genre_list[i];
+            inputedNameProperties[i] = data.genre_list[i];
         }
+        inputedNameProperties[3] = data.titleType;
+        inputedNameProperties[4] = to_string(data.isAdult);
+        inputedNameProperties[5] = to_string(data.runtimeMinutes);
 
-        int n = sizeof(inputedNameGenres) / sizeof(inputedNameGenres[0]);
+        int n = sizeof(inputedNameProperties) / sizeof(inputedNameProperties[0]);
         for(auto iter = graph.begin(); iter != graph.end(); iter++){ // iterate through graph, compare each values' genre list to the given movie's genre list
-            string iteratedNameGenres[3];
+            string iteratedNameProperties[6];
             for(int i = 0; i < 3; i++){
-                iteratedNameGenres[i] = iter->second.genre_list[i];
+                iteratedNameProperties[i] = iter->second.genre_list[i];
             }
+            iteratedNameProperties[3] = iter->second.titleType;
+            iteratedNameProperties[4] = to_string(iter->second.isAdult);
+            iteratedNameProperties[5] = to_string(iter->second.runtimeMinutes);
             set<string> unionGenres;
             set<string> intersectionGenres;
-            set_union(inputedNameGenres, inputedNameGenres + n, iteratedNameGenres, iteratedNameGenres + n, inserter(unionGenres, unionGenres.begin()));
+            set_union(inputedNameProperties, inputedNameProperties + n, iteratedNameProperties, iteratedNameProperties + n, inserter(unionGenres, unionGenres.begin()));
             if (unionGenres.find("") != unionGenres.end()) {
                 unionGenres.erase("");
             }
-            set_intersection(inputedNameGenres, inputedNameGenres + n, iteratedNameGenres, iteratedNameGenres + n, inserter(intersectionGenres, intersectionGenres.begin()));
+            set_intersection(inputedNameProperties, inputedNameProperties + n, iteratedNameProperties, iteratedNameProperties + n, inserter(intersectionGenres, intersectionGenres.begin()));
             if (intersectionGenres.find("") != intersectionGenres.end()) {
                 intersectionGenres.erase("");
             }
@@ -202,32 +181,45 @@ public:
         return similarTitles;
     }
 
-    map<float, vector<Vertex>> cosine(string& name, bool adult, int initialYear, string movieOrShow, int runtimeMinutes){
+    map<float, vector<Vertex>> cosine(string& name, bool adult, int initialYear, string& movieOrShow, int runtimeMinutes){
         Vertex data = graph[name];
-        vector<string> inputedNameGenres;
+        vector<string> inputedNameProperties;
         map<float, vector<Vertex>> similarTitles;
         for (int i = 0; i < 3; i++) {
-            inputedNameGenres.push_back(data.genre_list[i]);
+            inputedNameProperties.push_back(data.genre_list[i]);
         }
+        inputedNameProperties.push_back(data.titleType);
+        inputedNameProperties.push_back(to_string(data.isAdult));
+        inputedNameProperties.push_back(to_string(data.runtimeMinutes));
         for(auto iter = graph.begin(); iter != graph.end(); iter++){ // iterate through graph, compare each values' genre list to the given movie's genre list
-            set<string> unionGenres;
-            vector<string> iteratedNameGenres;
+            set<string> unionProperties;
+            vector<string> iteratedNameProperties;
             for(int i = 0; i < 3; i++){
-                iteratedNameGenres.push_back(iter->second.genre_list[i]);
-                unionGenres.insert(inputedNameGenres[i]);
-                unionGenres.insert(iter->second.genre_list[i]);
+                iteratedNameProperties.push_back(iter->second.genre_list[i]);
+                unionProperties.insert(inputedNameProperties[i]);
+                unionProperties.insert(iter->second.genre_list[i]);
             }
-            if (unionGenres.find("") != unionGenres.end()) {
-                unionGenres.erase("");
+            iteratedNameProperties.push_back(iter->second.titleType);
+            unionProperties.insert(inputedNameProperties[3]);
+            unionProperties.insert(iter->second.titleType);
+            iteratedNameProperties.push_back(to_string(iter->second.isAdult));
+            unionProperties.insert(inputedNameProperties[4]);
+            unionProperties.insert(to_string(iter->second.isAdult));
+            iteratedNameProperties.push_back(to_string(iter->second.runtimeMinutes));
+            unionProperties.insert(inputedNameProperties[5]);
+            unionProperties.insert(to_string(iter->second.runtimeMinutes));
+
+            if (unionProperties.find("") != unionProperties.end()) {
+                unionProperties.erase("");
             }
             vector<int> temp = {0, 0};
             map<string, vector<int>> similarityTable;
-            for (auto iter2 = unionGenres.begin(); iter2 != unionGenres.end(); iter2++) {
+            for (auto iter2 = unionProperties.begin(); iter2 != unionProperties.end(); iter2++) {
                 similarityTable[*iter2] = temp;
-                if (find(inputedNameGenres.begin(), inputedNameGenres.end(), *iter2) != inputedNameGenres.end()) {
+                if (find(inputedNameProperties.begin(), inputedNameProperties.end(), *iter2) != inputedNameProperties.end()) {
                     similarityTable[*iter2][0] = 1;
                 }
-                if (find(iteratedNameGenres.begin(), iteratedNameGenres.end(), *iter2) != iteratedNameGenres.end()) {
+                if (find(iteratedNameProperties.begin(), iteratedNameProperties.end(), *iter2) != iteratedNameProperties.end()) {
                     similarityTable[*iter2][1] = 1;
                 }
             }
@@ -275,7 +267,7 @@ public:
                 if(counter == 50){
                     return;
                 }
-                cout << iter->second[i].name << " " << iter->first << endl;
+                cout << iter->second[i].name << "\t" << iter->first << "\t" << iter->second[i].averageRating << endl;
                 counter++;
             }
         }
@@ -319,7 +311,7 @@ public:
 int main(){
     Graph g;
     string name;
-    ifstream myfile("movies_tvshows.tsv");
+    ifstream myfile("merged_data.tsv");
     cout << "Please give us a moment while our list is being created :)" << endl << endl;
     g.read(myfile);
     bool continueProgram = true;
