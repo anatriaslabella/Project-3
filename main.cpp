@@ -320,10 +320,12 @@ int main(){
     Graph g;
     string name;
     ifstream myfile("movies_tvshows.tsv");
+    cout << "Please give us a moment while our list is being created :)" << endl << endl;
     g.read(myfile);
     bool continueProgram = true;
         cout << "Enter movie/show name: " << endl;
         getline(cin, name);
+        cout << endl;
         string optionstring;
         bool custom = false;
         bool isAdult = true;
@@ -343,6 +345,7 @@ int main(){
                 cout << "Please respond with Yes or No." << endl;
             }
         }
+    cout << endl;
         if (custom) {
             while (true) {
                 cout << "Would you like your list to contain movies, tv shows, or both? (Respond with movies, shows, or both)" << endl;
@@ -351,9 +354,10 @@ int main(){
                     break;
                 }
                 else {
-                    cout << "Please respond with either movies, tv shows, or both." << endl;
+                    cout << "Please respond with either movies, tv shows, or both." << endl << endl;
                 }
             }
+            cout << endl;
             string isAdultString;
             while (true) {
                 cout << "Would you like your list to contain adult rating movies or tv shows? (Respond with Yes or No)"
@@ -366,9 +370,10 @@ int main(){
                     isAdult = false;
                     break;
                 } else {
-                    cout << "Please respond with Yes or No." << endl;
+                    cout << "Please respond with Yes or No." << endl << endl;
                 }
             }
+            cout << endl;
             string earliestRelaseDate;
             string initialYearString;
             while (true) {
@@ -391,7 +396,7 @@ int main(){
                             }
                         }
                         if (!notValidYear || initialYearString.length() != 4) {
-                            cout << "Please put a valid year." << endl;
+                            cout << "Please put a valid year." << endl << endl;
                         } else {
                             initialYear = stoi(initialYearString);
                             isYear = true;
@@ -401,6 +406,7 @@ int main(){
                     break;
                 }
             }
+            cout << endl;
             string runtimeResponse, runtimeMinutesString;
             while (true) {
                 cout << "Does it matter how long the movie or tv show is? (Respond with Yes or No)" << endl;
@@ -417,8 +423,8 @@ int main(){
                                 notValidRunTime = true;
                             }
                         }
-                        if (!notValidRunTime) {
-                            cout << "Please put in a valid max movie length in minutes." << endl;
+                        if (notValidRunTime) {
+                            cout << "Please put in a valid max movie length in minutes." << endl << endl;
                         } else {
                             runTime = stoi(runtimeMinutesString);
                             runTimeBool = true;
@@ -429,9 +435,10 @@ int main(){
                 } else if (runtimeResponse == "No") {
                     break;
                 } else {
-                    cout << "Please respond with Yes or No." << endl;
+                    cout << "Please respond with Yes or No." << endl << endl;
                 }
             }
+            cout << endl;
         }
         string jaccardOrCosine;
         while (true) {
@@ -441,9 +448,11 @@ int main(){
             cout << "Jaccard & Cosine Description HERE" << endl;
             cin >> jaccardOrCosine;
             if (jaccardOrCosine == "Jaccard") {
+                cout << "Loading your list, please wait a moment." << endl << endl;
                 g.PrintTop20Jaccard(name, isAdult, initialYear, moviesorshows, runTime);
                 break;
             } else if (jaccardOrCosine == "Cosine") {
+                cout << "Loading your list, please wait a moment." << endl << endl;
                 g.PrintTop20Cosine(name, isAdult, initialYear, moviesorshows, runTime);
                 break;
             } else {
