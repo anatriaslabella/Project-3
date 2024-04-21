@@ -10,6 +10,7 @@
 #include <math.h>
 using namespace std;
 
+
 struct Vertex {
     string name;
     string titleType;
@@ -68,6 +69,10 @@ struct Vertex {
         }
     }
 };
+
+bool custom_comparator(Vertex a, Vertex b){
+    return a.averageRating > b.averageRating;
+}
 
 class Graph {
     map<string, Vertex> graph;
@@ -262,6 +267,9 @@ public:
     void PrintTop20Jaccard(string& name, bool adult, int initialYear, string movieOrShow, int runtimeMinutes){
         map<float, vector<Vertex>> titles = jaccard(name, adult, initialYear, movieOrShow, runtimeMinutes);
         int counter = 0;
+        for(auto iter = titles.rbegin(); iter != titles.rend(); iter++) {
+            sort(iter->second.begin(), iter->second.end(), custom_comparator);
+        }
         for(auto iter = titles.rbegin(); iter != titles.rend(); iter++){
             for(int i = 0; i < iter->second.size(); i++) {
                 if(counter == 50){
@@ -276,6 +284,9 @@ public:
     void PrintTop20Cosine(string& name, bool adult, int initialYear, string movieOrShow, int runtimeMinutes){
         map<float, vector<Vertex>> titles = cosine(name, adult, initialYear, movieOrShow, runtimeMinutes);
         int counter = 0;
+        for(auto iter = titles.rbegin(); iter != titles.rend(); iter++) {
+            sort(iter->second.begin(), iter->second.end(), custom_comparator);
+        }
         for(auto iter = titles.rbegin(); iter != titles.rend(); iter++){
             for(int i = 0; i < iter->second.size(); i++) {
                 if(counter == 50){
@@ -308,6 +319,7 @@ public:
 //    return 0;
 //}
 
+
 int main(){
     Graph g;
     string name;
@@ -315,142 +327,142 @@ int main(){
     cout << "Please give us a moment while our list is being created :)" << endl << endl;
     g.read(myfile);
     bool continueProgram = true;
-        cout << "Enter movie/show name: " << endl;
-        getline(cin, name);
-        cout << endl;
-        string optionstring;
-        bool custom = false;
-        bool isAdult = true;
-        int initialYear = 0;
-        string moviesorshows = "both";
-        int runTime = 1000000;
-        while (true) {
-            cout << "Do you want to customize your search? Ex: Adult Rated movies shown, Earliest year made. (Respond with Yes or No)" << endl;
-            cin >> optionstring;
-            if (optionstring == "Yes") {
-                custom = true;
-                break;
-            } else if (optionstring == "No") {
-                custom = false;
-                break;
-            } else {
-                cout << "Please respond with Yes or No." << endl;
-            }
-        }
+    cout << "Enter movie/show name: " << endl;
+    getline(cin, name);
     cout << endl;
-        if (custom) {
-            while (true) {
-                cout << "Would you like your list to contain movies, tv shows, or both? (Respond with movies, shows, or both)" << endl;
-                cin >> moviesorshows;
-                if (moviesorshows == "movies" || moviesorshows == "shows" || moviesorshows == "both") {
-                    break;
-                }
-                else {
-                    cout << "Please respond with either movies, tv shows, or both." << endl << endl;
-                }
-            }
-            cout << endl;
-            string isAdultString;
-            while (true) {
-                cout << "Would you like your list to contain adult rating movies or tv shows? (Respond with Yes or No)"
-                     << endl;
-                cin >> isAdultString;
-                if (isAdultString == "Yes") {
-                    isAdult = true;
-                    break;
-                } else if (isAdultString == "No") {
-                    isAdult = false;
-                    break;
-                } else {
-                    cout << "Please respond with Yes or No." << endl << endl;
-                }
-            }
-            cout << endl;
-            string earliestRelaseDate;
-            string initialYearString;
-            while (true) {
-                cout << "Does it matter when the movie or tv show originally came out? (Respond with Yes or No)"
-                     << endl;
-                cin >> earliestRelaseDate;
-                if (earliestRelaseDate == "No") {
-                    break;
-                } else if (earliestRelaseDate == "Yes") {
-                    bool isYear = false;
-                    while (!isYear) {
-                        cout
-                                << "What is the earliest release year you want? (Respond with only the year, value cannot be over 2024, must have 4 digits Ex: 2002, 0001)"
-                                << endl;
-                        cin >> initialYearString;
-                        bool notValidYear = false;
-                        for (char num: initialYearString) {
-                            if (!isdigit(num)) {
-                                notValidYear = true;
-                            }
-                        }
-                        if (!notValidYear || initialYearString.length() != 4) {
-                            cout << "Please put a valid year." << endl << endl;
-                        } else {
-                            initialYear = stoi(initialYearString);
-                            isYear = true;
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
-            cout << endl;
-            string runtimeResponse, runtimeMinutesString;
-            while (true) {
-                cout << "Does it matter how long the movie or tv show is? (Respond with Yes or No)" << endl;
-                cin >> runtimeResponse;
-                if (runtimeResponse == "Yes") {
-                    bool runTimeBool = false;
-                    while (!runTimeBool) {
-                        cout << "At most, how long can a movie be? (Respond with a number in minutes Ex: 60, 120)"
-                             << endl;
-                        cin >> runtimeMinutesString;
-                        bool notValidRunTime = false;
-                        for (char num: runtimeMinutesString) {
-                            if (!isdigit(num)) {
-                                notValidRunTime = true;
-                            }
-                        }
-                        if (notValidRunTime) {
-                            cout << "Please put in a valid max movie length in minutes." << endl << endl;
-                        } else {
-                            runTime = stoi(runtimeMinutesString);
-                            runTimeBool = true;
-                            break;
-                        }
-                    }
-                    break;
-                } else if (runtimeResponse == "No") {
-                    break;
-                } else {
-                    cout << "Please respond with Yes or No." << endl << endl;
-                }
-            }
-            cout << endl;
+    string optionstring;
+    bool custom = false;
+    bool isAdult = true;
+    int initialYear = 0;
+    string moviesorshows = "both";
+    int runTime = 1000000;
+    while (true) {
+        cout << "Do you want to customize your search? Ex: Adult Rated movies shown, Earliest year made. (Respond with Yes or No)" << endl;
+        cin >> optionstring;
+        if (optionstring == "Yes") {
+            custom = true;
+            break;
+        } else if (optionstring == "No") {
+            custom = false;
+            break;
+        } else {
+            cout << "Please respond with Yes or No." << endl;
         }
-        string jaccardOrCosine;
+    }
+    cout << endl;
+    if (custom) {
         while (true) {
-            cout
-                    << "Would you like to utilize Jaccard Similarity Sorting or Cosine Similarity Sorting? (Respond with exactly 'Jaccard' or 'Cosine' Ex: Jaccard)"
-                    << endl;
-            cout << "Jaccard & Cosine Description HERE" << endl;
-            cin >> jaccardOrCosine;
-            if (jaccardOrCosine == "Jaccard") {
-                cout << "Loading your list, please wait a moment." << endl << endl;
-                g.PrintTop20Jaccard(name, isAdult, initialYear, moviesorshows, runTime);
+            cout << "Would you like your list to contain movies, tv shows, or both? (Respond with movies, shows, or both)" << endl;
+            cin >> moviesorshows;
+            if (moviesorshows == "movies" || moviesorshows == "shows" || moviesorshows == "both") {
                 break;
-            } else if (jaccardOrCosine == "Cosine") {
-                cout << "Loading your list, please wait a moment." << endl << endl;
-                g.PrintTop20Cosine(name, isAdult, initialYear, moviesorshows, runTime);
+            }
+            else {
+                cout << "Please respond with either movies, tv shows, or both." << endl << endl;
+            }
+        }
+        cout << endl;
+        string isAdultString;
+        while (true) {
+            cout << "Would you like your list to contain adult rating movies or tv shows? (Respond with Yes or No)"
+                 << endl;
+            cin >> isAdultString;
+            if (isAdultString == "Yes") {
+                isAdult = true;
+                break;
+            } else if (isAdultString == "No") {
+                isAdult = false;
                 break;
             } else {
-                cout << "Please respond with either 'Jaccard' or 'Cosine'" << endl;
+                cout << "Please respond with Yes or No." << endl << endl;
             }
         }
+        cout << endl;
+        string earliestRelaseDate;
+        string initialYearString;
+        while (true) {
+            cout << "Does it matter when the movie or tv show originally came out? (Respond with Yes or No)"
+                 << endl;
+            cin >> earliestRelaseDate;
+            if (earliestRelaseDate == "No") {
+                break;
+            } else if (earliestRelaseDate == "Yes") {
+                bool isYear = false;
+                while (!isYear) {
+                    cout
+                            << "What is the earliest release year you want? (Respond with only the year, value cannot be over 2024, must have 4 digits Ex: 2002, 0001)"
+                            << endl;
+                    cin >> initialYearString;
+                    bool notValidYear = false;
+                    for (char num: initialYearString) {
+                        if (!isdigit(num)) {
+                            notValidYear = true;
+                        }
+                    }
+                    if (!notValidYear || initialYearString.length() != 4) {
+                        cout << "Please put a valid year." << endl << endl;
+                    } else {
+                        initialYear = stoi(initialYearString);
+                        isYear = true;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        cout << endl;
+        string runtimeResponse, runtimeMinutesString;
+        while (true) {
+            cout << "Does it matter how long the movie or tv show is? (Respond with Yes or No)" << endl;
+            cin >> runtimeResponse;
+            if (runtimeResponse == "Yes") {
+                bool runTimeBool = false;
+                while (!runTimeBool) {
+                    cout << "At most, how long can a movie be? (Respond with a number in minutes Ex: 60, 120)"
+                         << endl;
+                    cin >> runtimeMinutesString;
+                    bool notValidRunTime = false;
+                    for (char num: runtimeMinutesString) {
+                        if (!isdigit(num)) {
+                            notValidRunTime = true;
+                        }
+                    }
+                    if (notValidRunTime) {
+                        cout << "Please put in a valid max movie length in minutes." << endl << endl;
+                    } else {
+                        runTime = stoi(runtimeMinutesString);
+                        runTimeBool = true;
+                        break;
+                    }
+                }
+                break;
+            } else if (runtimeResponse == "No") {
+                break;
+            } else {
+                cout << "Please respond with Yes or No." << endl << endl;
+            }
+        }
+        cout << endl;
+    }
+    string jaccardOrCosine;
+    while (true) {
+        cout
+                << "Would you like to utilize Jaccard Similarity Sorting or Cosine Similarity Sorting? (Respond with exactly 'Jaccard' or 'Cosine' Ex: Jaccard)"
+                << endl;
+        cout << "Jaccard & Cosine Description HERE" << endl;
+        cin >> jaccardOrCosine;
+        if (jaccardOrCosine == "Jaccard") {
+            cout << "Loading your list, please wait a moment." << endl << endl;
+            g.PrintTop20Jaccard(name, isAdult, initialYear, moviesorshows, runTime);
+            break;
+        } else if (jaccardOrCosine == "Cosine") {
+            cout << "Loading your list, please wait a moment." << endl << endl;
+            g.PrintTop20Cosine(name, isAdult, initialYear, moviesorshows, runTime);
+            break;
+        } else {
+            cout << "Please respond with either 'Jaccard' or 'Cosine'" << endl;
+        }
+    }
 //        string continueProgramResponse;
 //        while(true) {
 //            cout << "Would you like to make another list? (Respond with 'Yes' or 'No')" << endl;
