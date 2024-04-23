@@ -73,29 +73,14 @@ struct Vertex {
 
 bool ratingCompare(Vertex& a, Vertex& b){
     return a.averageRating > b.averageRating;
-}
+} //Drew inspiration from Discussion 13 slide 65
 
 class DataSet {
     map<string, Vertex> dataset;
 public:
     void read(ifstream& file) {
         string singleLine;
-        string primaryTitle;
         string ignore;
-        string titleType;
-        bool isAdult;
-//        string isAdultString;
-//        string startYearString;
-//        string endYearString;
-//        string runtimeMinutesString;
-        int runtimeMinutes;
-//        string genres[3];
-        string genre;
-//        string genre1;
-//        string genre2;
-//        string genre3;
-        int size = 1667546;
-
         if (file.is_open()) {
             getline(file, singleLine);
             istringstream stream(singleLine);
@@ -126,7 +111,7 @@ public:
         Vertex data = dataset[name];
         string inputedNameProperties[6];
         map<float, vector<Vertex>> similarTitles;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) { //putting our quailities of our chosen movie into a container to be compared to all movies
             inputedNameProperties[i] = data.genre_list[i];
         }
         inputedNameProperties[3] = data.titleType;
@@ -144,17 +129,17 @@ public:
             iteratedNameProperties[5] = to_string(iter->second.runtimeMinutes);
             set<string> unionGenres;
             set<string> intersectionGenres;
-            set_union(inputedNameProperties, inputedNameProperties + n, iteratedNameProperties, iteratedNameProperties + n, inserter(unionGenres, unionGenres.begin()));
+            set_union(inputedNameProperties, inputedNameProperties + n, iteratedNameProperties, iteratedNameProperties + n, inserter(unionGenres, unionGenres.begin())); //Iterating through both the inputed Movie properties and iterated Movie properties into a set represeting the union of the two.
             if (unionGenres.find("") != unionGenres.end()) {
-                unionGenres.erase("");
+                unionGenres.erase(""); //Removing all possible empty string values representing a genre so that only 1 exists.
             }
-            set_intersection(inputedNameProperties, inputedNameProperties + n, iteratedNameProperties, iteratedNameProperties + n, inserter(intersectionGenres, intersectionGenres.begin()));
+            set_intersection(inputedNameProperties, inputedNameProperties + n, iteratedNameProperties, iteratedNameProperties + n, inserter(intersectionGenres, intersectionGenres.begin()));//same idea but with intersection
             if (intersectionGenres.find("") != intersectionGenres.end()) {
                 intersectionGenres.erase("");
             }
-            float similarity = (float)intersectionGenres.size() / (float)unionGenres.size();
+            float similarity = (float)intersectionGenres.size() / (float)unionGenres.size(); //dividing the two magnitudes of our vectors
 
-            if (iter->first != name) {
+            if (iter->first != name) { //checking if we iterate to the same name
                 similarTitles[similarity].push_back(iter->second);
             }
         }
@@ -165,7 +150,7 @@ public:
         Vertex data = dataset[name];
         vector<string> inputedNameProperties;
         map<float, vector<Vertex>> similarTitles;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) { //taking all of our qualities of our inputed movie/show and adding them to a container
             inputedNameProperties.push_back(data.genre_list[i]);
         }
         inputedNameProperties.push_back(data.titleType);
@@ -179,6 +164,7 @@ public:
                 unionProperties.insert(inputedNameProperties[i]);
                 unionProperties.insert(iter->second.genre_list[i]);
             }
+            //Adding All possible qualities into a container between the iterated and inputed title
             iteratedNameProperties.push_back(iter->second.titleType);
             unionProperties.insert(inputedNameProperties[3]);
             unionProperties.insert(iter->second.titleType);
@@ -196,6 +182,7 @@ public:
             map<string, vector<int>> similarityTable;
             for (auto iter2 = unionProperties.begin(); iter2 != unionProperties.end(); iter2++) {
                 similarityTable[*iter2] = temp;
+                //iterating through unionProperties and if the iterated property is in the inputed or iterated title it adds it into the title's pair index as a 1.
                 if (find(inputedNameProperties.begin(), inputedNameProperties.end(), *iter2) != inputedNameProperties.end()) {
                     similarityTable[*iter2][0] = 1;
                 }
@@ -206,15 +193,17 @@ public:
             int dot_product = 0;
             float a_distance = 0;
             float b_distance = 0;
+            //finding dot product for every pair of qualities
             for (auto iter3 = similarityTable.begin(); iter3 != similarityTable.end(); iter3++) {
                 dot_product += (iter3->second[0] * iter3->second[1]);
                 a_distance += (float)pow(iter3->second[0], 2);
                 b_distance += (float)pow(iter3->second[1], 2);
             }
+            //finding magnitude for every pair of qualities
             a_distance = sqrt(a_distance);
             b_distance = sqrt(b_distance);
             float similarity = (float)dot_product / (a_distance * b_distance);
-
+            //divides the dot product by the magnitudes multiplied together then pushed back into a map according to similarity value
             if (iter->first != name) {
                 similarTitles[similarity].push_back(iter->second);
             }
@@ -235,6 +224,7 @@ public:
                 if(counter == 50){
                     return;
                 }
+                //checking if the given movie follows quality wanted
                 if (iter->second[i].runtimeMinutes > runtimeMinutes || iter->second[i].startYear < initialYear) {
                     continue;
                 }
@@ -282,6 +272,7 @@ public:
                 if(counter == 50){
                     return;
                 }
+                //checking if the given movie follows quality wanted
                 if(iter->second[i].runtimeMinutes > runtimeMinutes || iter->second[i].startYear < initialYear){
                     continue;
                 }
@@ -330,7 +321,6 @@ int main(){
     cout << "titles to choose from, but don't worry! We'll make sure to give you a tailor-made top 50 list of titles ranked " << endl;
     cout << "in terms of optimal similarity and average rating. Our similarity indices are calculated using title type, whether " << endl;
     cout << "or not the title is for adults, runtime, and genres. So let's get calculating!" << endl << endl;
-    bool continueProgram = true;
     cout << "Please enter the name of a movie/show that you like: " << endl;
     getline(cin, name);
     cout << endl;
