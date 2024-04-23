@@ -122,7 +122,7 @@ public:
         }
     }
 
-    map<float, vector<Vertex>> jaccard(string& name, bool adult, int initialYear, string& movieOrShow, int runtimeMinutes){
+    map<float, vector<Vertex>> jaccard(string& name){
         Vertex data = dataset[name];
         string inputedNameProperties[6];
         map<float, vector<Vertex>> similarTitles;
@@ -161,7 +161,7 @@ public:
         return similarTitles;
     }
 
-    map<float, vector<Vertex>> cosine(string& name, bool adult, int initialYear, string& movieOrShow, int runtimeMinutes){
+    map<float, vector<Vertex>> cosine(string& name){
         Vertex data = dataset[name];
         vector<string> inputedNameProperties;
         map<float, vector<Vertex>> similarTitles;
@@ -222,8 +222,8 @@ public:
         return similarTitles;
     }
 
-    void PrintTop50Jaccard(string& name, bool adult, int initialYear, string movieOrShow, int runtimeMinutes){
-        map<float, vector<Vertex>> titles = jaccard(name, adult, initialYear, movieOrShow, runtimeMinutes);
+    void PrintTop50Jaccard(string& name, bool adult, int initialYear, string& movieOrShow, int runtimeMinutes){
+        map<float, vector<Vertex>> titles = jaccard(name);
         int counter = 0;
         for(auto iter = titles.rbegin(); iter != titles.rend(); iter++) {
             sort(iter->second.begin(), iter->second.end(), ratingCompare);
@@ -269,8 +269,8 @@ public:
         }
     }
 
-    void PrintTop50Cosine(string& name, bool adult, int initialYear, string movieOrShow, int runtimeMinutes){
-        map<float, vector<Vertex>> titles = cosine(name, adult, initialYear, movieOrShow, runtimeMinutes);
+    void PrintTop50Cosine(string& name, bool adult, int initialYear, string& movieOrShow, int runtimeMinutes){
+        map<float, vector<Vertex>> titles = cosine(name);
         int counter = 0;
         for(auto iter = titles.rbegin(); iter != titles.rend(); iter++) {
             sort(iter->second.begin(), iter->second.end(), ratingCompare);
@@ -482,18 +482,4 @@ int main(){
             cout << "Please respond with either 'Jaccard' or 'Cosine'." << endl;
         }
     }
-//        string continueProgramResponse;
-//        while(true) {
-//            cout << "Would you like to make another list? (Respond with 'Yes' or 'No')" << endl;
-//            cin >> continueProgramResponse;
-//            if (continueProgramResponse == "Yes") {
-//                continueProgram = true;
-//                break;
-//            } else if (continueProgramResponse == "No") {
-//                continueProgram = false;
-//                break;
-//            } else {
-//                cout << "Please respond with either 'Yes' or 'No'" << endl;
-//            }
-//        }
 }
