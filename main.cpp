@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <utility>
 #include <math.h>
+#include <iomanip>
 using namespace std;
 
 
@@ -31,24 +32,24 @@ struct Vertex {
         averageRating = 0.0;
     }
 
-    Vertex(string name, string& titleType, bool isAdult, string startYear, string endYear, string runtimeMinutes, string& genres, string rating) {
+    Vertex(string& name, string& titleType, bool isAdult, string& startYear, string& endYear, string& runtimeMinutes, string& genres, string& rating) {
         this->name = name;
         this->titleType = titleType;
         this->isAdult = isAdult;
         if(startYear == "\\N"){
-            this->startYear = 0;
+            this->startYear = 11111;
         }
         else{
             this->startYear = stoi(startYear);
         }
         if(endYear == "\\N"){
-            this->endYear = 0;
+            this->endYear = 11110;
         }
         else{
             this->endYear = stoi(endYear);
         }
         if(runtimeMinutes == "\\N"){
-            this->runtimeMinutes = 0;
+            this->runtimeMinutes = -1;
         }
         else{
             this->runtimeMinutes = stoi(runtimeMinutes);
@@ -70,21 +71,13 @@ struct Vertex {
     }
 };
 
-bool custom_comparator(Vertex a, Vertex b){
+bool ratingCompare(Vertex& a, Vertex& b){
     return a.averageRating > b.averageRating;
 }
 
-class Graph {
-    map<string, Vertex> graph;
+class DataSet {
+    map<string, Vertex> dataset;
 public:
-    void GraphSize(){
-        cout << graph.size();
-    }
-
-    map<string, Vertex> GiveGraph(){
-        return graph;
-    }
-
     void read(ifstream& file) {
         string singleLine;
         string primaryTitle;
@@ -123,14 +116,14 @@ public:
                 string runtimeMinutes = movie_qualities[7];
                 string genre = movie_qualities[8];
                 string rating = movie_qualities[9];
-                graph.emplace(primaryTitle, Vertex(primaryTitle, titleType, isAdult, startYear, endYear, runtimeMinutes, genre, rating));
+                dataset.emplace(primaryTitle, Vertex(primaryTitle, titleType, isAdult, startYear, endYear, runtimeMinutes, genre, rating));
             }
             file.close();
         }
     }
 
     map<float, vector<Vertex>> jaccard(string& name, bool adult, int initialYear, string& movieOrShow, int runtimeMinutes){
-        Vertex data = graph[name];
+        Vertex data = dataset[name];
         string inputedNameProperties[6];
         map<float, vector<Vertex>> similarTitles;
         for (int i = 0; i < 3; i++) {
@@ -141,7 +134,7 @@ public:
         inputedNameProperties[5] = to_string(data.runtimeMinutes);
 
         int n = sizeof(inputedNameProperties) / sizeof(inputedNameProperties[0]);
-        for(auto iter = graph.begin(); iter != graph.end(); iter++){ // iterate through graph, compare each values' genre list to the given movie's genre list
+        for(auto iter = dataset.begin(); iter != dataset.end(); iter++){ // iterate through graph, compare each values' genre list to the given movie's genre list
             string iteratedNameProperties[6];
             for(int i = 0; i < 3; i++){
                 iteratedNameProperties[i] = iter->second.genre_list[i];
@@ -160,24 +153,6 @@ public:
                 intersectionGenres.erase("");
             }
             float similarity = (float)intersectionGenres.size() / (float)unionGenres.size();
-            if(iter->second.runtimeMinutes > runtimeMinutes || iter->second.startYear < initialYear){
-                continue;
-            }
-            if(!adult){
-                if(iter->second.isAdult){
-                    continue;
-                }
-            }
-            if(movieOrShow == "movie"){
-                if(iter->second.titleType == "tvSeries"){
-                    continue;
-                }
-            }
-            else if(movieOrShow == "tv show"){
-                if(iter->second.titleType == "movie"){
-                    continue;
-                }
-            }
 
             if (iter->first != name) {
                 similarTitles[similarity].push_back(iter->second);
@@ -187,7 +162,7 @@ public:
     }
 
     map<float, vector<Vertex>> cosine(string& name, bool adult, int initialYear, string& movieOrShow, int runtimeMinutes){
-        Vertex data = graph[name];
+        Vertex data = dataset[name];
         vector<string> inputedNameProperties;
         map<float, vector<Vertex>> similarTitles;
         for (int i = 0; i < 3; i++) {
@@ -196,7 +171,7 @@ public:
         inputedNameProperties.push_back(data.titleType);
         inputedNameProperties.push_back(to_string(data.isAdult));
         inputedNameProperties.push_back(to_string(data.runtimeMinutes));
-        for(auto iter = graph.begin(); iter != graph.end(); iter++){ // iterate through graph, compare each values' genre list to the given movie's genre list
+        for(auto iter = dataset.begin(); iter != dataset.end(); iter++){ // iterate through graph, compare each values' genre list to the given movie's genre list
             set<string> unionProperties;
             vector<string> iteratedNameProperties;
             for(int i = 0; i < 3; i++){
@@ -239,24 +214,7 @@ public:
             a_distance = sqrt(a_distance);
             b_distance = sqrt(b_distance);
             float similarity = (float)dot_product / (a_distance * b_distance);
-            if(iter->second.runtimeMinutes > runtimeMinutes || iter->second.startYear < initialYear){
-                continue;
-            }
-            if(!adult){
-                if(iter->second.isAdult){
-                    continue;
-                }
-            }
-            if(movieOrShow == "movie"){
-                if(iter->second.titleType == "tvSeries"){
-                    continue;
-                }
-            }
-            else if(movieOrShow == "tv show"){
-                if(iter->second.titleType == "movie"){
-                    continue;
-                }
-            }
+
             if (iter->first != name) {
                 similarTitles[similarity].push_back(iter->second);
             }
@@ -264,80 +222,127 @@ public:
         return similarTitles;
     }
 
-    void PrintTop20Jaccard(string& name, bool adult, int initialYear, string movieOrShow, int runtimeMinutes){
+    void PrintTop50Jaccard(string& name, bool adult, int initialYear, string movieOrShow, int runtimeMinutes){
         map<float, vector<Vertex>> titles = jaccard(name, adult, initialYear, movieOrShow, runtimeMinutes);
         int counter = 0;
         for(auto iter = titles.rbegin(); iter != titles.rend(); iter++) {
-            sort(iter->second.begin(), iter->second.end(), custom_comparator);
+            sort(iter->second.begin(), iter->second.end(), ratingCompare);
         }
+        cout << setw(10) << "Ranking" << " | " << setw(10) << "Movie/TV Show Title" << " | " << setw(10) << "Similarity (%)" << " | " << setw(10) << "Average Rating (out of 10)" << endl;
+        cout << setw(10) << "---------------------------------------------------------------------------------" << endl;
         for(auto iter = titles.rbegin(); iter != titles.rend(); iter++){
             for(int i = 0; i < iter->second.size(); i++) {
                 if(counter == 50){
                     return;
                 }
-                cout << iter->second[i].name << "\t" << iter->first << "\t" << iter->second[i].averageRating << endl;
+                if (iter->second[i].runtimeMinutes > runtimeMinutes || iter->second[i].startYear < initialYear) {
+                    continue;
+                }
+                if (!adult) {
+                    if (iter->second[i].isAdult) {
+                        continue;
+                    }
+                }
+                if (movieOrShow == "movie") {
+                    if (iter->second[i].titleType == "tvSeries") {
+                        continue;
+                    }
+                } else if (movieOrShow == "tvSeries") {
+                    if (iter->second[i].titleType == "movie") {
+                        continue;
+                    }
+                }
+
+                stringstream stream;
+                stream << fixed << setprecision(0) << (iter->first * 100);
+                string s = stream.str();
+
+                cout << setw(10) << counter + 1 << " | " << setw(5) << iter->second[i].name << " | " << setw(2);
+                cout << s << "% | " << setw(2);
+                if (iter->second[i].averageRating == 0) {
+                    cout << "N/A" << endl;
+                } else {
+                    cout << iter->second[i].averageRating << endl;
+                }
                 counter++;
             }
         }
     }
 
-    void PrintTop20Cosine(string& name, bool adult, int initialYear, string movieOrShow, int runtimeMinutes){
+    void PrintTop50Cosine(string& name, bool adult, int initialYear, string movieOrShow, int runtimeMinutes){
         map<float, vector<Vertex>> titles = cosine(name, adult, initialYear, movieOrShow, runtimeMinutes);
         int counter = 0;
         for(auto iter = titles.rbegin(); iter != titles.rend(); iter++) {
-            sort(iter->second.begin(), iter->second.end(), custom_comparator);
+            sort(iter->second.begin(), iter->second.end(), ratingCompare);
         }
+        cout << setw(10) << "Ranking" << " | " << setw(10) << "Movie/TV Show Title" << " | " << setw(10) << "Similarity (%)" << " | " << setw(10) << "Average Rating (out of 10)" << endl;
+        cout << setw(10) << "---------------------------------------------------------------------------------" << endl;
         for(auto iter = titles.rbegin(); iter != titles.rend(); iter++){
             for(int i = 0; i < iter->second.size(); i++) {
                 if(counter == 50){
                     return;
                 }
-                cout << iter->second[i].name << " " << iter->first << endl;
+                if(iter->second[i].runtimeMinutes > runtimeMinutes || iter->second[i].startYear < initialYear){
+                    continue;
+                }
+                if(!adult){
+                    if(iter->second[i].isAdult){
+                        continue;
+                    }
+                }
+                if(movieOrShow == "movie"){
+                    if(iter->second[i].titleType == "tvSeries"){
+                        continue;
+                    }
+                }
+                else if(movieOrShow == "tvSeries"){
+                    if(iter->second[i].titleType == "movie"){
+                        continue;
+                    }
+                }
+                stringstream stream;
+                stream << fixed << setprecision(0) << (iter->first * 100);
+                string s = stream.str();
+
+                cout << setw(10) << counter + 1 << " | " << setw(5) << iter->second[i].name << " | " << setw(2);
+                cout << s << "% | " << setw(2);
+                if (iter->second[i].averageRating == 0) {
+                    cout << "N/A" << endl;
+                }
+                else {
+                    cout << iter->second[i].averageRating << endl;
+                }
                 counter++;
             }
         }
     }
 };
 
-//int main() {
-//    Graph g;
-//    string name;
-//    ifstream myfile("filtered_titles.tsv");
-//    g.read(myfile);
-//    cout << "here" << endl;
-//    g.GraphSize();
-//    cout << endl;
-//    cout << "Enter movie/show name: " << endl;
-//    getline(cin, name);
-//    g.jaccard(name);
-//    g.PrintTop20Jaccard(name);
-//    cout << endl;
-//    cout << "here" << endl;
-//    cout << endl;
-//    g.cosine(name);
-//    g.PrintTop20Cosine(name);
-//    return 0;
-//}
-
-
 int main(){
-    Graph g;
+    DataSet ds;
     string name;
     ifstream myfile("merged_data.tsv");
-    cout << "Please give us a moment while our list is being created :)" << endl << endl;
-    g.read(myfile);
+    cout << "Please give us a moment while our data set is being created... :)" << endl;
+    ds.read(myfile);
+    cout << "Process complete!" << endl << endl;
+    cout << "Welcome to TVRecommend, where we cater to all of your television interests by recommending you different " << endl;
+    cout << "movies/shows based on how similar they are to your preferred movies/shows. Our data set includes over 8,000,000 " << endl;
+    cout << "titles to choose from, but don't worry! We'll make sure to give you a tailor-made top 50 list of titles ranked " << endl;
+    cout << "in terms of optimal similarity and average rating. Our similarity indices are calculated using title type, whether " << endl;
+    cout << "or not the title is for adults, runtime, and genres. So let's get calculating!" << endl << endl;
     bool continueProgram = true;
-    cout << "Enter movie/show name: " << endl;
+    cout << "Please enter the name of a movie/show that you like: " << endl;
     getline(cin, name);
     cout << endl;
     string optionstring;
-    bool custom = false;
+    bool custom;
     bool isAdult = true;
     int initialYear = 0;
     string moviesorshows = "both";
     int runTime = 1000000;
     while (true) {
-        cout << "Do you want to customize your search? Ex: Adult Rated movies shown, Earliest year made. (Respond with Yes or No)" << endl;
+        cout << "Would you like to customize your list with features like title type, minimum start year, and runtime?" << endl;
+        cout << "(Respond with 'Yes' or 'No')" << endl;
         cin >> optionstring;
         if (optionstring == "Yes") {
             custom = true;
@@ -346,26 +351,36 @@ int main(){
             custom = false;
             break;
         } else {
-            cout << "Please respond with Yes or No." << endl;
+            cout << "Please respond with 'Yes' or 'No'." << endl;
         }
     }
     cout << endl;
+    string inputMOS;
     if (custom) {
         while (true) {
-            cout << "Would you like your list to contain movies, tv shows, or both? (Respond with movies, shows, or both)" << endl;
-            cin >> moviesorshows;
-            if (moviesorshows == "movies" || moviesorshows == "shows" || moviesorshows == "both") {
+            cout << "Would you like your list to contain only movies, only tv shows, or both?" << endl;
+            cout << "(Respond with 'Movies', 'Shows', or 'Both')" << endl;
+            cin >> inputMOS;
+            if (inputMOS == "Movies") {
+                moviesorshows = "movie";
+                break;
+            }
+            else if(inputMOS == "Shows") {
+                moviesorshows = "tvSeries";
+                break;
+            }
+            else if (inputMOS == "Both") {
                 break;
             }
             else {
-                cout << "Please respond with either movies, tv shows, or both." << endl << endl;
+                cout << "Please respond with either 'Movies', 'Shows', or 'Both'." << endl << endl;
             }
         }
         cout << endl;
         string isAdultString;
         while (true) {
-            cout << "Would you like your list to contain adult rating movies or tv shows? (Respond with Yes or No)"
-                 << endl;
+            cout << "Would you like your list to contain adult movies or tv shows?" << endl;
+            cout << "(Respond with 'Yes' or 'No')" << endl;
             cin >> isAdultString;
             if (isAdultString == "Yes") {
                 isAdult = true;
@@ -374,24 +389,23 @@ int main(){
                 isAdult = false;
                 break;
             } else {
-                cout << "Please respond with Yes or No." << endl << endl;
+                cout << "Please respond with 'Yes' or 'No'." << endl << endl;
             }
         }
         cout << endl;
         string earliestRelaseDate;
         string initialYearString;
+        bool isYear = false;
         while (true) {
-            cout << "Does it matter when the movie or tv show originally came out? (Respond with Yes or No)"
-                 << endl;
+            cout << "Does it matter when the movie or tv show originally came out?" << endl;
+            cout << "(Respond with 'Yes' or 'No')" << endl;
             cin >> earliestRelaseDate;
             if (earliestRelaseDate == "No") {
                 break;
             } else if (earliestRelaseDate == "Yes") {
-                bool isYear = false;
                 while (!isYear) {
-                    cout
-                            << "What is the earliest release year you want? (Respond with only the year, value cannot be over 2024, must have 4 digits Ex: 2002, 0001)"
-                            << endl;
+                    cout << "What is the earliest release year you want?" << endl;
+                    cout << "(Respond with only the year; value must be 2024 or less and contain exactly 4 digits)" << endl;
                     cin >> initialYearString;
                     bool notValidYear = false;
                     for (char num: initialYearString) {
@@ -399,8 +413,8 @@ int main(){
                             notValidYear = true;
                         }
                     }
-                    if (!notValidYear || initialYearString.length() != 4) {
-                        cout << "Please put a valid year." << endl << endl;
+                    if (notValidYear || initialYearString.length() != 4) {
+                        cout << "Please enter a valid year." << endl << endl;
                     } else {
                         initialYear = stoi(initialYearString);
                         isYear = true;
@@ -409,17 +423,21 @@ int main(){
                 }
                 break;
             }
+            else {
+                cout << "Please respond with 'Yes' or 'No'." << endl << endl;
+            }
         }
         cout << endl;
         string runtimeResponse, runtimeMinutesString;
         while (true) {
-            cout << "Does it matter how long the movie or tv show is? (Respond with Yes or No)" << endl;
+            cout << "Does it matter how long the movie or tv show is?" << endl;
+            cout << "(Respond with 'Yes' or 'No')" << endl;
             cin >> runtimeResponse;
             if (runtimeResponse == "Yes") {
                 bool runTimeBool = false;
                 while (!runTimeBool) {
-                    cout << "At most, how long can a movie be? (Respond with a number in minutes Ex: 60, 120)"
-                         << endl;
+                    cout << "At most, how long can a movie or tv show episode be?" << endl;
+                    cout << "(Respond with a length in minutes)" << endl;
                     cin >> runtimeMinutesString;
                     bool notValidRunTime = false;
                     for (char num: runtimeMinutesString) {
@@ -428,7 +446,7 @@ int main(){
                         }
                     }
                     if (notValidRunTime) {
-                        cout << "Please put in a valid max movie length in minutes." << endl << endl;
+                        cout << "Please enter in a valid max movie/tv show episode length in minutes." << endl << endl;
                     } else {
                         runTime = stoi(runtimeMinutesString);
                         runTimeBool = true;
@@ -439,28 +457,29 @@ int main(){
             } else if (runtimeResponse == "No") {
                 break;
             } else {
-                cout << "Please respond with Yes or No." << endl << endl;
+                cout << "Please respond with 'Yes' or 'No'." << endl << endl;
             }
         }
         cout << endl;
     }
     string jaccardOrCosine;
     while (true) {
-        cout
-                << "Would you like to utilize Jaccard Similarity Sorting or Cosine Similarity Sorting? (Respond with exactly 'Jaccard' or 'Cosine' Ex: Jaccard)"
-                << endl;
-        cout << "Jaccard & Cosine Description HERE" << endl;
+        cout << "Would you like to utilize our Jaccard Similarity Algorithm or our Cosine Similarity Algorithm?" << endl;
+        cout << "(Respond with 'Jaccard' or 'Cosine')" << endl << endl;
+        cout << "Jaccard: Ratio of the length of the intersection within data samples to the length of the union of the data samples." << endl;  // Definition from GeeksForGeeks
+        cout << "Cosine: Ratio of the dot product of our two vectors (data samples) to the product of their magnitudes." << endl;  // Definition from GeeksForGeeks
         cin >> jaccardOrCosine;
+        cout << endl;
         if (jaccardOrCosine == "Jaccard") {
-            cout << "Loading your list, please wait a moment." << endl << endl;
-            g.PrintTop20Jaccard(name, isAdult, initialYear, moviesorshows, runTime);
+            cout << "Creating your list, please wait a moment..." << endl << endl;
+            ds.PrintTop50Jaccard(name, isAdult, initialYear, moviesorshows, runTime);
             break;
         } else if (jaccardOrCosine == "Cosine") {
-            cout << "Loading your list, please wait a moment." << endl << endl;
-            g.PrintTop20Cosine(name, isAdult, initialYear, moviesorshows, runTime);
+            cout << "Creating your list, please wait a moment..." << endl << endl;
+            ds.PrintTop50Cosine(name, isAdult, initialYear, moviesorshows, runTime);
             break;
         } else {
-            cout << "Please respond with either 'Jaccard' or 'Cosine'" << endl;
+            cout << "Please respond with either 'Jaccard' or 'Cosine'." << endl;
         }
     }
 //        string continueProgramResponse;
